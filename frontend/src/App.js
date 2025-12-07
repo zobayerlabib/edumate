@@ -1,23 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React from 'react';
+import './App.css'; // Import the CSS file for styling
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Header from './components/Header';  // Import Header component
+import Home from './components/Home';  // Correct path for Home
+import Profile from './components/Profile';  // Correct path for Profile
 
 function App() {
-  const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    axios.get('http://127.0.0.1:8001')
-      .then(response => {
-        setMessage(response.data.message);
-      })
-      .catch(error => {
-        console.log("Error fetching data: ", error);
-      });
-  }, []);
-
   return (
-    <div className="App">
-      <h1>{message ? message : "Loading..."}</h1>
-    </div>
+    <Router>
+      <div className="App">
+        <Header />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/profile" element={<Profile />} />
+        </Routes>
+        {/* Footer */}
+        <footer>
+          <p>&copy; 2025 EduMate. All Rights Reserved.</p>
+        </footer>
+      </div>
+    </Router>
   );
 }
 

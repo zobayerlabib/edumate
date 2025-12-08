@@ -1,25 +1,33 @@
-import React from 'react';
-import './App.css'; // Import the CSS file for styling
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Header from './components/Header';  // Import Header component
-import Home from './components/Home';  // Correct path for Home
-import Profile from './components/Profile';  // Correct path for Profile
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+
+import Home from "./pages/Home";
+import Features from "./pages/Features";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Login from "./pages/Login";
 
 function App() {
   return (
-    <Router>
-      <div className="App">
+    <div className="d-flex flex-column min-vh-100">
+      <Router>
         <Header />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/profile" element={<Profile />} />
-        </Routes>
-        {/* Footer */}
-        <footer>
-          <p>&copy; 2025 EduMate. All Rights Reserved.</p>
-        </footer>
-      </div>
-    </Router>
+
+        {/* ✅ FULL HEIGHT CONTENT */}
+        <main className="flex-grow-1">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/features" element={<Features />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </main>
+
+        <Footer />
+      </Router>
+    </div>
   );
 }
 

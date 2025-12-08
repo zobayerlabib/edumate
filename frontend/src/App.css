@@ -1,73 +1,18 @@
-/* App.css */
-
-/* Basic styling for the body and app container */
-body {
-  font-family: Arial, sans-serif;
-  background-color: white; /* White background for the entire page */
-  margin: 0;
-  padding: 0;
-}
-
-/* App container styling */
+/* App container styling with Flexbox */
 .App {
-  text-align: left; /* Ensure content is aligned to the left */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Ensures full height */
+}
+
+/* Content section takes the available space */
+.content {
+  flex-grow: 1;
+}
+
+/* Ensure the body and app span full height */
+body, html {
+  height: 100%;
   margin: 0;
-}
-
-/* Styling for the Header component */
-header {
-  background-color: #0047AB; /* Cobalt blue header */
-  color: white;
-  padding: 20px;
-  text-align: left; /* Align header content to the left */
-}
-
-/* Styling for the navigation links in the header */
-nav ul {
-  list-style-type: none;
   padding: 0;
 }
-
-nav ul li {
-  display: inline;
-  margin-right: 20px;
-}
-
-nav ul li a {
-  color: white;
-  text-decoration: none;
-  font-weight: bold;
-}
-
-/* Styling for Home and Profile pages */
-h2 {
-  color: #333;
-}
-
-p {
-  font-size: 18px;
-  line-height: 1.6;
-  color: #555;
-}
-
-/* Centering the content in the Home and Profile pages */
-.Home, .Profile {
-  padding: 20px;
-  margin-top: 20px;
-}
-
-/* Styling for the Footer */
-footer {
-  background-color: #0047AB; /* Cobalt blue footer */
-  color: white;
-  padding: 20px;
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  text-align: center;
-}
-
-footer p {
-  color: white; /* Ensures that the paragraph inside the footer is white */
-}
-

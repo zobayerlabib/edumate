@@ -1,127 +1,135 @@
 // src/pages/AuthLoginPage.js
-import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 
-function AuthLoginPage() {
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
+
+export default function AuthLoginPage() {
+  const query = useQuery();
+  const roleFromUrl = query.get("role"); // student/teacher/admin
+
+  const location = useLocation();
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-    role: "student",
-  });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("student");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+  useEffect(() => {
+    if (roleFromUrl === "student" || roleFromUrl === "teacher" || roleFromUrl === "admin") {
+      setRole(roleFromUrl);
+    }
+  }, [roleFromUrl]);
+
+  const goDashboard = (r) => {
+    if (r === "admin") navigate("/admin", { replace: true });
+    else if (r === "teacher") navigate("/teacher", { replace: true });
+    else navigate("/student", { replace: true });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    // Mock login: route based on selected role
-    if (form.role === "student") {
-      navigate("/student");
-    } else if (form.role === "teacher") {
-      navigate("/teacher");
-    } else if (form.role === "admin") {
-      navigate("/admin");
+    try {
+      // Backend should return: { access_token, token_type, user: { email, role } }
+      const res = await api.post("/auth/login", { email, password, role });
+
+      const token = res.data?.access_token;
+      const userRole = res.data?.user?.role || role;
+      const userEmail = res.data?.user?.email || email;
+
+      if (!token) throw new Error("No token returned from server.");
+
+      login({ token, email: userEmail, role: userRole });
+
+      const redirectTo = location.state?.from;
+      if (redirectTo) navigate(redirectTo, { replace: true });
+      else goDashboard(userRole);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.message ||
+        err.message ||
+        "Login failed";
+      setError(msg);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <section
-      className="py-5"
-      style={{ minHeight: "70vh", background: "#f8f9fa" }}
-    >
-      <div className="container">
-        <div className="row justify-content-center">
-          <div className="col-md-6 col-lg-5">
-            <div className="feature-box">
-              <h2 className="mb-3 text-center">Login to EduMate</h2>
-              <p className="text-muted text-center mb-4">
-                Use your email and select a role to continue. This is a mock login
-                for demonstration purposes.
-              </p>
+    <section className="py-5" style={{ minHeight: "70vh", background: "#f8f9fa" }}>
+      <div className="container" style={{ maxWidth: 520 }}>
+        <div className="card p-4" style={{ borderRadius: 14 }}>
+          <h2 className="text-center mb-2">Login to EduMate</h2>
+          <p className="text-center text-muted mb-4">
+            Sign in to continue to your dashboard.
+          </p>
 
-              <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label className="form-label">Email address</label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    name="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    placeholder="name@example.com"
-                    required
-                  />
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Password</label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    name="password"
-                    value={form.password}
-                    onChange={handleChange}
-                    placeholder="••••••••"
-                    required
-                  />
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Role</label>
-                  <select
-                    className="form-select"
-                    name="role"
-                    value={form.role}
-                    onChange={handleChange}
-                  >
-                    <option value="student">Student</option>
-                    <option value="teacher">Teacher</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </div>
-
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="rememberMe"
-                    />
-                    <label className="form-check-label" htmlFor="rememberMe">
-                      Remember me
-                    </label>
-                  </div>
-                  <Link to="/auth/forgot-password" className="small">
-                    Forgot password?
-                  </Link>
-                </div>
-
-                <button type="submit" className="btn-get-started w-100">
-                  Login
-                </button>
-              </form>
-
-              <p className="mt-3 mb-1 text-center">
-                <span className="text-muted">Don&apos;t have an account?</span>{" "}
-                <Link to="/auth/register">Create an account</Link>
-              </p>
-
-              <p className="mb-0 text-center" style={{ fontSize: "0.85rem" }}>
-                Or you can{" "}
-                <Link to="/login">continue by choosing a role</Link> without
-                entering credentials.
-              </p>
+          {error && (
+            <div className="alert alert-danger" role="alert">
+              {error}
             </div>
-          </div>
+          )}
+
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label className="form-label">Email address</label>
+              <input
+                className="form-control"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@example.com"
+                required
+              />
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label">Password</label>
+              <input
+                className="form-control"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label">Role</label>
+              <select className="form-select" value={role} onChange={(e) => setRole(e.target.value)}>
+                <option value="student">Student</option>
+                <option value="teacher">Teacher</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+
+            <button className="btn-get-started w-100" type="submit" disabled={loading}>
+              {loading ? "Logging in..." : "Login"}
+            </button>
+
+            <div className="d-flex justify-content-between mt-3">
+              <Link to="/forgot-password">Forgot password?</Link>
+              <Link to="/register">Create an account</Link>
+            </div>
+
+            <div className="text-center mt-3">
+              <Link to="/login/role-select">Continue by choosing a role</Link>
+            </div>
+          </form>
         </div>
       </div>
     </section>
   );
 }
-
-export default AuthLoginPage;

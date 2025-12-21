@@ -5,20 +5,15 @@ import { useNavigate, Link } from "react-router-dom";
 function RoleSelectPage() {
   const navigate = useNavigate();
 
-  const handleStudent = () => navigate("/student");
-  const handleTeacher = () => navigate("/teacher");
-  const handleAdmin = () => navigate("/admin");
+  const goLogin = (role) => navigate(`/login?role=${role}`);
 
   return (
-    <section
-      className="py-5"
-      style={{ minHeight: "70vh", background: "#f8f9fa" }}
-    >
+    <section className="py-5" style={{ minHeight: "70vh", background: "#f8f9fa" }}>
       <div className="container">
         <div className="text-center mb-4">
           <h2 className="mb-2">Sign in to EduMate</h2>
           <p className="text-muted mb-0">
-            Choose your role to preview the corresponding dashboard.
+            Choose your role to continue. You will sign in before accessing the dashboard.
           </p>
         </div>
 
@@ -28,10 +23,7 @@ function RoleSelectPage() {
             <div className="feature-box h-100 d-flex flex-column">
               <div className="mb-3">
                 <div className="mb-2">
-                  <i
-                    className="bi bi-mortarboard-fill"
-                    style={{ fontSize: "1.6rem" }}
-                  />
+                  <i className="bi bi-mortarboard-fill" style={{ fontSize: "1.6rem" }} />
                 </div>
                 <h5>Student</h5>
                 <p className="mb-0">
@@ -41,7 +33,7 @@ function RoleSelectPage() {
               <button
                 type="button"
                 className="btn-get-started mt-auto"
-                onClick={handleStudent}
+                onClick={() => goLogin("student")}
               >
                 Continue as Student
               </button>
@@ -53,10 +45,7 @@ function RoleSelectPage() {
             <div className="feature-box h-100 d-flex flex-column">
               <div className="mb-3">
                 <div className="mb-2">
-                  <i
-                    className="bi bi-people-fill"
-                    style={{ fontSize: "1.6rem" }}
-                  />
+                  <i className="bi bi-people-fill" style={{ fontSize: "1.6rem" }} />
                 </div>
                 <h5>Teacher</h5>
                 <p className="mb-0">
@@ -66,7 +55,7 @@ function RoleSelectPage() {
               <button
                 type="button"
                 className="btn-get-started mt-auto"
-                onClick={handleTeacher}
+                onClick={() => goLogin("teacher")}
               >
                 Continue as Teacher
               </button>
@@ -78,10 +67,7 @@ function RoleSelectPage() {
             <div className="feature-box h-100 d-flex flex-column">
               <div className="mb-3">
                 <div className="mb-2">
-                  <i
-                    className="bi bi-shield-lock-fill"
-                    style={{ fontSize: "1.6rem" }}
-                  />
+                  <i className="bi bi-shield-lock-fill" style={{ fontSize: "1.6rem" }} />
                 </div>
                 <h5>Admin</h5>
                 <p className="mb-0">
@@ -91,7 +77,7 @@ function RoleSelectPage() {
               <button
                 type="button"
                 className="btn-get-started mt-auto"
-                onClick={handleAdmin}
+                onClick={() => goLogin("admin")}
               >
                 Continue as Admin
               </button>
@@ -101,8 +87,8 @@ function RoleSelectPage() {
 
         <p className="mt-4 text-center text-muted" style={{ fontSize: "0.85rem" }}>
           Prefer to sign in with email and password?{" "}
-          <Link to="/auth/login">Use the full login form</Link>.{" "}
-          New to EduMate? <Link to="/auth/register">Create an account</Link>.
+          <Link to="/login">Use the full login form</Link>. New to EduMate?{" "}
+          <Link to="/register">Create an account</Link>.
         </p>
       </div>
     </section>

@@ -1,8 +1,12 @@
 // src/components/layout/Navbar.js
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 function Navbar() {
+  const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuth();
+
   return (
     <header
       id="header"
@@ -19,37 +23,40 @@ function Navbar() {
         <nav id="navbar" className="navbar">
           <ul>
             <li>
-              <Link className="nav-link" to="/">
-                Home
-              </Link>
+              <a className="nav-link" href="/#hero">Home</a>
             </li>
             <li>
-              <a className="nav-link" href="/#about">
-                About
-              </a>
+              <a className="nav-link" href="/#about">About</a>
             </li>
             <li>
-              <a className="nav-link" href="/#features">
-                Features
-              </a>
+              <a className="nav-link" href="/#features">Features</a>
             </li>
             <li>
-              <a className="nav-link" href="/#how-it-works">
-                How It Works
-              </a>
+              <a className="nav-link" href="/#how-it-works">How It Works</a>
             </li>
             <li>
-              <a className="nav-link" href="/#stats">
-                Impact
-              </a>
+              <a className="nav-link" href="/#stats">Impact</a>
             </li>
           </ul>
         </nav>
 
-        {/* Login / Get Started */}
-        <Link to="/login" className="btn-get-started">
-          Login / Get Started
-        </Link>
+        {/* CTA Button */}
+        {isAuthenticated ? (
+          <button
+            className="btn-get-started"
+            type="button"
+            onClick={() => {
+              logout();
+              navigate("/login");
+            }}
+          >
+            Logout ({user?.role})
+          </button>
+        ) : (
+          <Link to="/login/role-select" className="btn-get-started">
+            Login / Get Started
+          </Link>
+        )}
       </div>
     </header>
   );

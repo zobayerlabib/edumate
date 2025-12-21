@@ -2,7 +2,7 @@
 import React from "react";
 import "./App.css";
 
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
@@ -13,38 +13,52 @@ import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 
-// NEW auth pages
 import AuthLoginPage from "./pages/AuthLoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+
 function App() {
   return (
     <Router>
-      <div className="edumate-page">
-        <Navbar />
+      <AuthProvider>
+        <div className="edumate-page">
+          <Navbar />
 
-        <main id="main">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
+          <main id="main">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
 
-            {/* Role selection (kept at /login) */}
-            <Route path="/login" element={<RoleSelectPage />} />
+              {/* Role select */}
+              <Route path="/login/role-select" element={<RoleSelectPage />} />
 
-            {/* New auth routes */}
-            <Route path="/auth/login" element={<AuthLoginPage />} />
-            <Route path="/auth/register" element={<RegisterPage />} />
-            <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+              {/* Auth */}
+              <Route path="/login" element={<AuthLoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-            {/* Dashboards */}
-            <Route path="/student" element={<StudentDashboard />} />
-            <Route path="/teacher" element={<TeacherDashboard />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-          </Routes>
-        </main>
+              {/* Protected dashboards */}
+              <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
+                <Route path="/student" element={<StudentDashboard />} />
+              </Route>
 
-        <Footer />
-      </div>
+              <Route element={<ProtectedRoute allowedRoles={["teacher"]} />}>
+                <Route path="/teacher" element={<TeacherDashboard />} />
+              </Route>
+
+              <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+                <Route path="/admin" element={<AdminDashboard />} />
+              </Route>
+
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+
+          <Footer />
+        </div>
+      </AuthProvider>
     </Router>
   );
 }

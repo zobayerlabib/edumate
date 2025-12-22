@@ -2,6 +2,13 @@
 import React from "react";
 
 function StatsSection() {
+  const stats = [
+    { value: "430+", label: "Students supported" },
+    { value: "38", label: "Teachers using EduMate" },
+    { value: "1200+", label: "AI feedback responses" },
+    { value: "95%", label: "Improved learning outcomes (target)" },
+  ];
+
   return (
     <section id="stats" className="section stats">
       <div className="container">
@@ -11,33 +18,14 @@ function StatsSection() {
         </header>
 
         <div className="row gy-4">
-          <div className="col-md-3 col-6">
-            <div className="stat-box text-center">
-              <h3>430+</h3>
-              <p className="mb-0">Students supported</p>
+          {stats.map((s, idx) => (
+            <div className="col-md-3 col-6" key={idx}>
+              <div className="stat-box text-center h-100">
+                <h3 className="stat-value">{s.value}</h3>
+                <p className="mb-0">{s.label}</p>
+              </div>
             </div>
-          </div>
-
-          <div className="col-md-3 col-6">
-            <div className="stat-box text-center">
-              <h3>38</h3>
-              <p className="mb-0">Teachers using EduMate</p>
-            </div>
-          </div>
-
-          <div className="col-md-3 col-6">
-            <div className="stat-box text-center">
-              <h3>1200+</h3>
-              <p className="mb-0">AI feedback responses</p>
-            </div>
-          </div>
-
-          <div className="col-md-3 col-6">
-            <div className="stat-box text-center">
-              <h3>95%</h3>
-              <p className="mb-0">Improved learning outcomes (target)</p>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </section>

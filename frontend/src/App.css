@@ -1,20 +1,13 @@
 /* =========================================================
-   App.css – EduMate Custom Branding (Full Updated Version)
+   App.css – EduMate Custom Branding (No Images Version)
    ========================================================= */
 
-/* ======== COLOR TOKENS ========= */
 :root {
-  --color-primary: #0047ab;        /* cobalt blue */
-  --color-primary-dark: #00358a;   /* darker blue for hover */
-  --color-primary-rgb: 0, 71, 171;
-}
-
-/* ======== BRAND TEXT ========= */
-.brand-text {
-  font-weight: 700;
-  font-size: 1.6rem;
-  letter-spacing: 0.06em;
-  color: var(--color-primary);
+  --color-primary: #0047ab;
+  --color-primary-dark: #00358a;
+  --color-primary-soft: rgba(0, 71, 171, 0.08);
+  --text-dark: #1f2937;
+  --text-muted: #4b5563;
 }
 
 /* =========================================================
@@ -27,34 +20,41 @@
   right: 0;
   background: #ffffff;
   z-index: 997;
-  padding: 12px 0;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+  padding: 14px 0;
+  box-shadow: 0 2px 18px rgba(0, 0, 0, 0.06);
 }
 
-/* Push main content down so hero is not covered */
 #main {
-  margin-top: 90px;
+  margin-top: 92px;
 }
 
-/* Menu style */
+/* Brand */
+.logo {
+  gap: 12px;
+  text-decoration: none;
+}
+
+.brand-text {
+  font-weight: 800;
+  font-size: 1.65rem;
+  letter-spacing: 0.02em;
+  color: var(--color-primary);
+}
+
+/* Nav */
 .header .navbar ul {
   margin: 0;
   padding: 0;
   list-style: none;
   display: flex;
-  gap: 24px;
+  gap: 26px;
   align-items: center;
 }
 
-.header .navbar li {
-  list-style: none;
-}
-
-/* Nav links */
 .header .navbar .nav-link {
   text-decoration: none;
-  font-size: 0.95rem;
-  color: #444444;
+  font-size: 0.97rem;
+  color: #374151;
   transition: color 0.25s ease;
 }
 
@@ -62,13 +62,12 @@
   color: var(--color-primary);
 }
 
-/* Space for Login / Get Started button */
 .header .btn-get-started {
   margin-left: 16px;
 }
 
 /* =========================================================
-   GLOBAL PRIMARY BUTTONS (OVERRIDE ALL GREEN)
+   BUTTONS
    ========================================================= */
 .btn-get-started,
 .get-started-btn,
@@ -79,11 +78,12 @@ button,
   background-color: var(--color-primary) !important;
   border-color: var(--color-primary) !important;
   color: #ffffff !important;
-  padding: 8px 18px;
-  border-radius: 30px !important;
+  padding: 10px 20px;
+  border-radius: 999px !important;
   text-decoration: none !important;
   font-size: 0.95rem !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
+  box-shadow: 0 10px 20px rgba(0, 71, 171, 0.18);
 }
 
 .btn-get-started:hover,
@@ -95,50 +95,151 @@ button:hover,
   background-color: var(--color-primary-dark) !important;
   border-color: var(--color-primary-dark) !important;
   color: #ffffff !important;
+  transform: translateY(-1px);
+}
+
+/* Outline pill button */
+.btn-outline-pill {
+  border-radius: 999px !important;
+  padding: 10px 18px !important;
 }
 
 /* =========================================================
-   CARDS & FEATURE BOXES
+   HERO
+   ========================================================= */
+#hero,
+.hero {
+  background: linear-gradient(180deg, var(--color-primary-soft) 0%, #ffffff 55%);
+  padding-top: 50px;
+  padding-bottom: 50px;
+}
+
+.hero-badge {
+  display: inline-block;
+  font-size: 0.85rem;
+  color: var(--color-primary);
+  background: rgba(0, 71, 171, 0.10);
+  padding: 6px 12px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+
+.hero-title {
+  color: var(--text-dark);
+  line-height: 1.15;
+}
+
+.hero-subtitle {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  max-width: 620px;
+}
+
+.hero-card {
+  padding: 26px;
+  border-radius: 16px;
+  border: 1px solid #ededed;
+  background: #ffffff;
+  box-shadow: 0 14px 30px rgba(17, 24, 39, 0.06);
+}
+
+.hero-card ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #374151;
+}
+
+.hero-note {
+  background: #ffffff;
+  border: 1px solid rgba(0, 71, 171, 0.12);
+  padding: 14px 16px;
+  border-radius: 14px;
+  color: #374151;
+  box-shadow: 0 10px 22px rgba(17, 24, 39, 0.05);
+}
+
+/* =========================================================
+   CARDS & HOVER EFFECTS
    ========================================================= */
 .section.features .feature-box,
 .section.stats .stat-box,
 .step-card,
-.feature-box {
-  padding: 24px;
-  border-radius: 10px;
-  border: 1px solid #e5e5e5;
+.feature-box,
+.info-card {
+  padding: 26px;
+  border-radius: 14px;
+  border: 1px solid #ededed;
   background: #ffffff;
+  box-shadow: 0 10px 22px rgba(17, 24, 39, 0.05);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
-/* Step number circles */
-.step-number {
+.section.features .feature-box:hover,
+.section.stats .stat-box:hover,
+.step-card:hover,
+.feature-box:hover,
+.info-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 34px rgba(17, 24, 39, 0.08);
+  border-color: rgba(0, 71, 171, 0.18);
+}
+
+/* Pill label on feature cards */
+.pill {
   display: inline-block;
-  width: 28px;
-  height: 28px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: rgba(0, 71, 171, 0.10);
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+/* Steps */
+.step-number {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   border: 2px solid var(--color-primary);
-  line-height: 24px;
-  font-weight: 600;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+/* Tip bar */
+.tip-bar {
+  background: #eef5ff;
+  border: 1px solid rgba(0, 71, 171, 0.15);
+  border-radius: 14px;
+  padding: 14px 16px;
   text-align: center;
+  color: #1f2937;
+}
+
+/* Stats */
+#stats,
+.section.stats {
+  background: #fbfdff;
+}
+
+.stat-value {
+  font-size: 2rem;
+  color: var(--text-dark);
 }
 
 /* =========================================================
-   CTA SECTION – "Ready to Build with EduMate?"
+   CTA
    ========================================================= */
 .section.cta,
 #cta.section {
-  background: var(--color-primary) !important; /* cobalt blue */
+  background: var(--color-primary) !important;
   color: #ffffff !important;
-  padding-top: 60px;
-  padding-bottom: 60px;
+  padding-top: 70px;
+  padding-bottom: 70px;
 }
 
-.section.cta .container,
-#cta.section .container {
-  max-width: 900px;
-}
-
-/* Make CTA titles & text white */
 .section.cta h2,
 #cta.section h2,
 .section.cta p,
@@ -146,13 +247,13 @@ button:hover,
   color: #ffffff !important;
 }
 
-/* CTA Button (white outline on blue background) */
 .section.cta .btn-get-started,
 #cta.section .btn-get-started {
-  padding-inline: 28px;
+  padding-inline: 32px;
   border: 2px solid #ffffff !important;
   color: #ffffff !important;
   background-color: transparent !important;
+  box-shadow: none;
 }
 
 .section.cta .btn-get-started:hover,
@@ -162,28 +263,14 @@ button:hover,
 }
 
 /* =========================================================
-   FOOTER – FULL COBALT BLUE
+   RESPONSIVE
    ========================================================= */
-footer,
-#footer,
-.footer {
-  background: var(--color-primary) !important;
-  color: #ffffff !important;
-  padding: 30px 0;
-  text-align: center;
-  font-size: 0.95rem;
-}
+@media (max-width: 992px) {
+  .header .navbar ul {
+    gap: 14px;
+  }
 
-/* Footer links */
-footer a,
-#footer a,
-.footer a {
-  color: #ffffff !important;
-  text-decoration: none !important;
-}
-
-footer a:hover,
-#footer a:hover,
-.footer a:hover {
-  text-decoration: underline !important;
+  .brand-text {
+    font-size: 1.35rem;
+  }
 }

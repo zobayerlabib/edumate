@@ -8,15 +8,19 @@ function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
 
   return (
-    <header
-      id="header"
-      className="header d-flex align-items-center"
-      style={{ background: "#fff" }}
-    >
+    <header id="header" className="header d-flex align-items-center">
       <div className="container-fluid container-xl d-flex align-items-center justify-content-between">
         {/* Logo / Brand */}
         <Link to="/" className="logo d-flex align-items-center">
-          <span className="brand-text">EDUMATE</span>
+          <span className="logo-badge" aria-label="EduMate logo">
+            <img
+              src="/assets/img/edumate-logo.png"
+              alt="EduMate Logo"
+              className="logo-img"
+            />
+          </span>
+
+          <span className="brand-text">EduMate</span>
         </Link>
 
         {/* Navigation */}

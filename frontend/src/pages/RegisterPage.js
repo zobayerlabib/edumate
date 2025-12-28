@@ -10,12 +10,25 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
+
+    if (!email.trim()) {
+      setError("Please enter your email.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
 
     if (password !== confirm) {
       setError("Passwords do not match.");
@@ -24,14 +37,17 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      // Backend should implement: POST /auth/register { email, password, role }
       await api.post("/auth/register", { email, password, role });
-      navigate(`/login?role=${role}`, { replace: true });
+
+      setSuccess("Account created successfully. Redirecting to login...");
+      setTimeout(() => {
+        navigate(`/login?role=${role}`, { replace: true });
+      }, 700);
     } catch (err) {
       const msg =
         err?.response?.data?.detail ||
         err?.response?.data?.message ||
-        err.message ||
+        err?.message ||
         "Registration failed";
       setError(msg);
     } finally {
@@ -49,6 +65,7 @@ export default function RegisterPage() {
           </p>
 
           {error && <div className="alert alert-danger">{error}</div>}
+          {success && <div className="alert alert-success">{success}</div>}
 
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
@@ -65,11 +82,20 @@ export default function RegisterPage() {
 
             <div className="mb-3">
               <label className="form-label">Role</label>
-              <select className="form-select" value={role} onChange={(e) => setRole(e.target.value)}>
+              <select
+                className="form-select"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+              >
                 <option value="student">Student</option>
                 <option value="teacher">Teacher</option>
+
+                {/* Recommended: don't allow self-register as admin */}
                 <option value="admin">Admin</option>
               </select>
+              <small className="text-muted">
+                Tip: Usually only Student/Teacher are allowed for self-registration.
+              </small>
             </div>
 
             <div className="mb-3">
@@ -79,6 +105,7 @@ export default function RegisterPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="At least 6 characters"
                 required
               />
             </div>

@@ -18,7 +18,10 @@ export default function AuthLoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // Role dropdown is optional UI (backend decides real role)
   const [role, setRole] = useState("student");
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -40,17 +43,20 @@ export default function AuthLoginPage() {
     setLoading(true);
 
     try {
-      // Backend should return: { access_token, token_type, user: { email, role } }
-      const res = await api.post("/auth/login", { email, password, role });
+      // Backend expects: { email, password }
+      // Backend returns: { access_token, token_type, role }
+      const res = await api.post("/auth/login", { email, password });
 
       const token = res.data?.access_token;
-      const userRole = res.data?.user?.role || role;
-      const userEmail = res.data?.user?.email || email;
+      const userRole = res.data?.role || role; // backend role preferred
+      const userEmail = email; // backend doesn't return user object in your implementation
 
       if (!token) throw new Error("No token returned from server.");
 
+      // Store session
       login({ token, email: userEmail, role: userRole });
 
+      // Redirect back if user was blocked by protected route
       const redirectTo = location.state?.from;
       if (redirectTo) navigate(redirectTo, { replace: true });
       else goDashboard(userRole);
@@ -58,7 +64,7 @@ export default function AuthLoginPage() {
       const msg =
         err?.response?.data?.detail ||
         err?.response?.data?.message ||
-        err.message ||
+        err?.message ||
         "Login failed";
       setError(msg);
     } finally {
@@ -106,13 +112,21 @@ export default function AuthLoginPage() {
               />
             </div>
 
+            {/* Optional UI only: backend decides actual role */}
             <div className="mb-3">
-              <label className="form-label">Role</label>
-              <select className="form-select" value={role} onChange={(e) => setRole(e.target.value)}>
+              <label className="form-label">Role (optional)</label>
+              <select
+                className="form-select"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+              >
                 <option value="student">Student</option>
                 <option value="teacher">Teacher</option>
                 <option value="admin">Admin</option>
               </select>
+              <small className="text-muted">
+                Note: your real role is determined by the backend.
+              </small>
             </div>
 
             <button className="btn-get-started w-100" type="submit" disabled={loading}>

@@ -25,6 +25,9 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        # Vercel production domains
+        "https://edumate-teal.vercel.app",
+        "https://edumate-5sqf8q831-zobayerlabibs-projects.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],

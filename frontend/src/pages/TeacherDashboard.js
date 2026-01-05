@@ -621,7 +621,7 @@ const loadStudentWeakTopics = async (courseId, email) => {
           <div>
             <div className="dash-title">Teacher Panel</div>
             <div className="dash-muted">
-              Welcome back, <b>{displayName}</b>{" "}
+              Welcome back, <b> Teacher {displayName}</b>{" "}
               <span className="wave" aria-label="wave">
                 👋
               </span>

@@ -846,7 +846,7 @@ html {
   /* Brand: slightly RIGHT from center (so it doesn't feel under hamburger) */
   #header .logo {
     position: absolute;
-    left: calc(50% + 18px);   /* move a bit to the right */
+    left: calc(50% + 20px);   
     top: 40%;
     transform: translate(-50%, -50%);
     z-index: 1100;
@@ -923,7 +923,7 @@ html {
 
   /* make the top bar taller */
   #header .container-fluid.container-xl{
-    min-height: 74px !important;   /* increase/decrease */
+    min-height: 76px !important;  
   }
 
   /* make logo text bigger (if logo is text) */
@@ -944,7 +944,7 @@ html {
     font-size: 20px !important;
   }
 
-  /* optional: logo image bigger (if logo is an image) */
+  /* optional: logo image bigger  */
   #header .logo img{
     height: 38px !important;
     width: auto !important;

@@ -6,7 +6,7 @@ function HowItWorksSection() {
     <section id="how-it-works" className="section">
       <div className="container">
         <header className="section-header text-center mb-4">
-          <h2>How EduMate Works</h2>
+          <h2>How It Works</h2>
           <p>Simple steps from onboarding to insight.</p>
         </header>
 

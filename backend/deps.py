@@ -2,7 +2,7 @@ from fastapi import Depends, HTTPException, Request
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-import auth  # reuse SECRET_KEY + ALGORITHM (no changes to auth.py)
+import auth  # reuse SECRET_KEY + ALGORITHM
 from database import SessionLocal
 
 
@@ -37,6 +37,10 @@ def get_current_user(request: Request):
 
 def require_role(role: str):
     def _inner(user=Depends(get_current_user)):
+        # admin can access all protected routes
+        if user["role"] == "admin":
+            return user
+
         if user["role"] != role:
             raise HTTPException(status_code=403, detail=f"Forbidden: {role} only")
         return user

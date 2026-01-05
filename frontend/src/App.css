@@ -797,7 +797,7 @@ html {
 .nav-cta-desktop { display: block; }
 .nav-cta-mobile { display: none; }
 
-/* Remove black border / focus ring */
+/* Remove black border  */
 .nav-toggle:focus,
 .nav-toggle:focus-visible {
   outline: none !important;
@@ -813,7 +813,7 @@ html {
   /* Show hamburger on mobile */
   .nav-toggle { display: inline-flex; align-items: center; }
 
-  /* Hide desktop CTA on mobile (we show it inside the menu) */
+  /* Hide desktop CTA on mobile */
   .nav-cta-desktop { display: none; }
   .nav-cta-mobile { display: block; }
 
@@ -821,7 +821,7 @@ html {
   #header .container-fluid.container-xl {
     position: relative;
     justify-content: center !important;
-    min-height: 64px; /* keeps header stable */
+    min-height: 64px; 
   }
 
   /* Hamburger fixed at left */
@@ -846,7 +846,7 @@ html {
   /* Brand: slightly RIGHT from center (so it doesn't feel under hamburger) */
   #header .logo {
     position: absolute;
-    left: calc(53% + 18px);   /* move a bit to the right */
+    left: calc(50% + 18px);   /* move a bit to the right */
     top: 40%;
     transform: translate(-50%, -50%);
     z-index: 1100;
@@ -916,5 +916,37 @@ html {
     transform: none !important;
     box-shadow: none !important;
     outline: none !important;
+  }
+}
+/* Bigger navbar + bigger font ONLY on mobile */
+@media (max-width: 991.98px) {
+
+  /* make the top bar taller */
+  #header .container-fluid.container-xl{
+    min-height: 74px !important;   /* increase/decrease */
+  }
+
+  /* make logo text bigger (if logo is text) */
+  #header .logo a,
+  #header .logo h1{
+    font-size: 24px !important;
+    line-height: 1.1 !important;
+  }
+
+  /* make navbar menu text bigger */
+  #navbar.navbar a,
+  #navbar.navbar a:focus{
+    font-size: 16.5px !important;
+  }
+
+  /* optional: hamburger icon bigger */
+  .nav-toggle{
+    font-size: 20px !important;
+  }
+
+  /* optional: logo image bigger (if logo is an image) */
+  #header .logo img{
+    height: 38px !important;
+    width: auto !important;
   }
 }

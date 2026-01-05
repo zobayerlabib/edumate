@@ -773,3 +773,148 @@ html {
 .chat-bubble ul, .chat-bubble ol { margin: 0 0 8px 18px; }
 .chat-bubble h1, .chat-bubble h2, .chat-bubble h3 { margin: 8px 0; }
 .chat-bubble hr { margin: 10px 0; }
+
+/* ===== Mobile Navbar Fix ===== */
+
+/* Hide hamburger on desktop */
+.nav-toggle {
+  display: none;
+  border: 0;
+  background: transparent;
+  font-size: 28px;
+  line-height: 1;
+  padding: 8px 10px;
+  cursor: pointer;
+
+  /* remove outlines/highlights */
+  outline: none;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* CTA visibility */
+.nav-cta-desktop { display: block; }
+.nav-cta-mobile { display: none; }
+
+/* Remove black border / focus ring */
+.nav-toggle:focus,
+.nav-toggle:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Desktop active state safe */
+.nav-toggle:active {
+  transform: none !important;
+}
+
+@media (max-width: 991.98px) {
+  /* Show hamburger on mobile */
+  .nav-toggle { display: inline-flex; align-items: center; }
+
+  /* Hide desktop CTA on mobile (we show it inside the menu) */
+  .nav-cta-desktop { display: none; }
+  .nav-cta-mobile { display: block; }
+
+  /* ===== Center brand on mobile TOP BAR only ===== */
+  #header .container-fluid.container-xl {
+    position: relative;
+    justify-content: center !important;
+    min-height: 64px; /* keeps header stable */
+  }
+
+  /* Hamburger fixed at left */
+  .nav-toggle {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1200;
+  }
+
+  /*STOP icon from moving on */
+  .nav-toggle:hover,
+  .nav-toggle:active,
+  .nav-toggle:focus,
+  .nav-toggle:focus-visible {
+    transform: translateY(-50%) !important; /* keep same transform always */
+    box-shadow: none !important;
+    outline: none !important;
+  }
+
+  /* Brand: slightly RIGHT from center (so it doesn't feel under hamburger) */
+  #header .logo {
+    position: absolute;
+    left: calc(53% + 18px);   /* move a bit to the right */
+    top: 40%;
+    transform: translate(-50%, -50%);
+    z-index: 1100;
+    white-space: nowrap;
+  }
+
+  /* Hide the centered logo when menu is open (avoid overlap) */
+  #header.nav-open .logo {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* ===== Mobile menu card ===== */
+  #navbar.navbar ul {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+
+    width: min(340px, 92vw);
+    margin: 12px auto 0;
+
+    padding: 14px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+
+  #navbar.navbar.is-open ul {
+    display: flex;
+  }
+
+  #navbar.navbar ul li {
+    width: 100%;
+  }
+
+/* ===== Logout button (RIGHT) ===== */
+#navbar.navbar ul .btn-get-started {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: fit-content !important;
+  min-width: 150px;
+
+  margin-top: 10px;
+  margin-left: auto !important;   /* push to right */
+  margin-right: 0 !important;     /* no auto-centering */
+
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-weight: 500;
+  line-height: 1;
+
+  border: none;
+  outline: none;
+  box-shadow: none;
+  transform: none !important;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+
+  /* template adds hover */
+  #navbar.navbar ul .btn-get-started:hover,
+  #navbar.navbar ul .btn-get-started:active,
+  #navbar.navbar ul .btn-get-started:focus,
+  #navbar.navbar ul .btn-get-started:focus-visible {
+    transform: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+}

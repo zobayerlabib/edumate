@@ -1,3 +1,4 @@
+// src/components/layout/Navbar.js  (use your same path)
 import React, { useEffect, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -17,6 +18,7 @@ function Navbar() {
   ];
 
   const [activeSection, setActiveSection] = useState("hero");
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const getHeaderOffset = () => {
     const header = document.getElementById("header");
@@ -39,8 +41,11 @@ function Navbar() {
     setActiveSection(id);
   };
 
+  const closeMobile = () => setMobileOpen(false);
+
   const onNavClick = (e, id) => {
     e.preventDefault();
+    closeMobile();
 
     if (location.pathname !== "/") {
       navigate("/");
@@ -84,25 +89,93 @@ function Navbar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
+  // Close mobile menu on route change (ex: clicking Dashboard)
+  useEffect(() => {
+    closeMobile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  const renderDashboardLink = () => {
+    if (!isAuthenticated) return null;
+
+    if (user?.role === "student") {
+      return (
+        <li>
+          <NavLink
+            to="/student"
+            className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+            onClick={closeMobile}
+          >
+            Dashboard
+          </NavLink>
+        </li>
+      );
+    }
+
+    if (user?.role === "teacher") {
+      return (
+        <li>
+          <NavLink
+            to="/teacher"
+            className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+            onClick={closeMobile}
+          >
+            Dashboard
+          </NavLink>
+        </li>
+      );
+    }
+
+    if (user?.role === "admin") {
+      return (
+        <li>
+          <NavLink
+            to="/admin"
+            className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+            onClick={closeMobile}
+          >
+            Dashboard
+          </NavLink>
+        </li>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <header id="header" className="header d-flex align-items-center header-solid">
       <div className="container-fluid container-xl d-flex align-items-center justify-content-between">
         {/* Logo */}
-        <Link to="/" className="logo d-flex align-items-center">
+        <Link to="/" className="logo d-flex align-items-center" onClick={closeMobile}>
           <span className="logo-badge" aria-label="EduMate logo">
             <img src={logoImg} alt="EduMate Logo" className="logo-img logo-img--big" />
           </span>
           <span className="brand-text">EduMate</span>
         </Link>
 
+        {/* Mobile hamburger */}
+        <button
+          type="button"
+          className="nav-toggle"
+          aria-label="Toggle navigation"
+          aria-controls="navbar"
+          aria-expanded={mobileOpen}
+          onClick={() => setMobileOpen((v) => !v)}
+        >
+          ☰
+        </button>
+
         {/* Navigation */}
-        <nav id="navbar" className="navbar">
+        <nav id="navbar" className={`navbar ${mobileOpen ? "is-open" : ""}`}>
           <ul>
             {sections.map((s) => (
               <li key={s.id}>
                 <a
                   href={`#${s.id}`}
-                  className={`nav-scroll-link ${location.pathname === "/" && activeSection === s.id ? "active-section" : ""}`}
+                  className={`nav-scroll-link ${
+                    location.pathname === "/" && activeSection === s.id ? "active-section" : ""
+                  }`}
                   onClick={(e) => onNavClick(e, s.id)}
                 >
                   {s.label}
@@ -110,50 +183,50 @@ function Navbar() {
               </li>
             ))}
 
-            {/* Dashboard tabs */}
-            {isAuthenticated && user?.role === "student" && (
-              <li>
-                <NavLink to="/student" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-                  Dashboard
-                </NavLink>
-              </li>
-            )}
+            {renderDashboardLink()}
 
-            {isAuthenticated && user?.role === "teacher" && (
-              <li>
-                <NavLink to="/teacher" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-                  Dashboard
-                </NavLink>
-              </li>
-            )}
-
-            {isAuthenticated && user?.role === "admin" && (
-              <li>
-                <NavLink to="/admin" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-                  Dashboard
-                </NavLink>
-              </li>
-            )}
+            {/* Mobile-only CTA inside menu */}
+            <li className="nav-cta-mobile">
+              {isAuthenticated ? (
+                <button
+                  className="btn-get-started"
+                  type="button"
+                  onClick={() => {
+                    closeMobile();
+                    logout();
+                    navigate("/login");
+                  }}
+                >
+                  Logout ({user?.role})
+                </button>
+              ) : (
+                <Link to="/login/role-select" className="btn-get-started" onClick={closeMobile}>
+                  Login / Get Started
+                </Link>
+              )}
+            </li>
           </ul>
         </nav>
 
-        {/* CTA */}
-        {isAuthenticated ? (
-          <button
-            className="btn-get-started"
-            type="button"
-            onClick={() => {
-              logout();
-              navigate("/login");
-            }}
-          >
-            Logout ({user?.role})
-          </button>
-        ) : (
-          <Link to="/login/role-select" className="btn-get-started">
-            Login / Get Started
-          </Link>
-        )}
+        {/* Desktop CTA (keeps your current desktop look) */}
+        <div className="nav-cta-desktop">
+          {isAuthenticated ? (
+            <button
+              className="btn-get-started"
+              type="button"
+              onClick={() => {
+                logout();
+                navigate("/login");
+              }}
+            >
+              Logout ({user?.role})
+            </button>
+          ) : (
+            <Link to="/login/role-select" className="btn-get-started">
+              Login / Get Started
+            </Link>
+          )}
+        </div>
       </div>
     </header>
   );

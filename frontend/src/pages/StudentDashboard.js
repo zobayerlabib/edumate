@@ -19,6 +19,46 @@ function StatCard({ title, value, sub, variant = "blue" }) {
   );
 }
 
+function BarChart({ labels = [], values = [], height = 170 }) {
+  const max = Math.max(1, ...values);
+  return (
+    <div style={{ width: "100%" }}>
+      <div style={{ display: "flex", gap: 10, alignItems: "flex-end", height }}>
+        {values.map((v, i) => {
+          const h = Math.round((v / max) * (height - 20));
+          return (
+            <div key={i} style={{ flex: 1, textAlign: "center" }}>
+              <div
+                style={{
+                  height: h,
+                  borderRadius: 10,
+                  background: "rgba(13,110,253,0.25)",
+                  border: "1px solid rgba(13,110,253,0.35)",
+                }}
+                title={`${labels[i]}: ${v}`}
+              />
+              <div
+                style={{
+                  fontSize: 11,
+                  marginTop: 6,
+                  color: "rgba(0,0,0,0.55)",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+                title={labels[i]}
+              >
+                {labels[i]}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+
 function TopicCard({ item, onPractice, onLessons }) {
   const mastery = Math.round(item?.mastery || 0);
   let variant = "red";
@@ -80,6 +120,12 @@ export default function StudentDashboard() {
 
   const [stats, setStats] = useState(null);
 
+  // ===============================
+  // ✅ NEW: Activity / Weekly chart
+  // ===============================
+  const [weeklyActivity, setWeeklyActivity] = useState([]); // [{ label/week, attempts, avg_score }]
+  const [weeklyMetric, setWeeklyMetric] = useState("attempts"); // "attempts" | "avg_score"
+
   const [quizzesLoading, setQuizzesLoading] = useState(false);
   const [lessonQuizzes, setLessonQuizzes] = useState([]);
   const [selectedQuizId, setSelectedQuizId] = useState(null);
@@ -128,6 +174,51 @@ export default function StudentDashboard() {
     () => (report.weak_topics || []).slice(0, 6),
     [report]
   );
+
+  const weeklyChart = useMemo(() => {
+    const list = Array.isArray(weeklyActivity) ? weeklyActivity : [];
+    const labels = list.map((w, i) => {
+      return (
+        w.label ||
+        w.week ||
+        w.week_label ||
+        w.name ||
+        w.date ||
+        `W${i + 1}`
+      );
+    });
+
+    const values = list.map((w) => {
+      if (weeklyMetric === "avg_score") {
+        const v = w.avg_score ?? w.average_score ?? w.avg ?? 0;
+        return Math.round(Number(v) || 0);
+      }
+      const v = w.attempts ?? w.count ?? w.total ?? 0;
+      return Number(v) || 0;
+    });
+
+    return { labels, values };
+  }, [weeklyActivity, weeklyMetric]);
+
+  const highestScore = useMemo(() => {
+    const v =
+      stats?.highest_score ??
+      stats?.high_score ??
+      stats?.max_score ??
+      stats?.best_score ??
+      null;
+    return v == null ? null : Math.round(Number(v) || 0);
+  }, [stats]);
+
+  const lowestScore = useMemo(() => {
+    const v =
+      stats?.lowest_score ??
+      stats?.low_score ??
+      stats?.min_score ??
+      stats?.worst_score ??
+      null;
+    return v == null ? null : Math.round(Number(v) || 0);
+  }, [stats]);
 
   const lessonsCount = lessons.length;
 
@@ -266,6 +357,33 @@ export default function StudentDashboard() {
           setStats(sRes.data);
         } catch {
           setStats(null);
+        }
+
+        // ✅ Weekly activity (optional endpoint)
+        // If your backend does not have this endpoint, it will fail silently and chart will stay hidden.
+        try {
+          const wRes = await api.get("/attempts/my/weekly-progress?weeks=8");
+          const data = wRes.data || {};
+
+          // Preferred format: weeks_data = [{label, attempts, avg_score}]
+          if (Array.isArray(data.weeks_data)) {
+            setWeeklyActivity(data.weeks_data);
+          } else if (Array.isArray(data.weeks) && Array.isArray(data.attempts)) {
+            // Backward compatible: arrays
+            const labels = data.weeks;
+            const attemptsArr = data.attempts || [];
+            const avgArr = data.avg_scores || [];
+            const list = labels.map((label, i) => ({
+              label,
+              attempts: Number(attemptsArr[i] || 0),
+              avg_score: Number(avgArr[i] || 0),
+            }));
+            setWeeklyActivity(list);
+          } else {
+            setWeeklyActivity([]);
+          }
+        } catch {
+          setWeeklyActivity([]);
         }
       } catch (e) {
         setError("Failed to load dashboard. Please login again.");
@@ -633,6 +751,112 @@ export default function StudentDashboard() {
               />
             </div>
           )}
+
+
+          <div className="row g-3 mt-1">
+            <div className="col-12">
+              <div className="card dash-card dash-section dash-section--softblue">
+                <div className="card-body">
+                  <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <h5 className="mb-0">Activity Overview</h5>
+
+                    <div className="d-flex gap-2">
+                      <button
+                        className={`btn btn-sm ${
+                          weeklyMetric === "attempts"
+                            ? "btn-primary"
+                            : "btn-outline-primary"
+                        }`}
+                        type="button"
+                        onClick={() => setWeeklyMetric("attempts")}
+                      >
+                        Attempts
+                      </button>
+                      <button
+                        className={`btn btn-sm ${
+                          weeklyMetric === "avg_score"
+                            ? "btn-primary"
+                            : "btn-outline-primary"
+                        }`}
+                        type="button"
+                        onClick={() => setWeeklyMetric("avg_score")}
+                      >
+                        Avg Score
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="row g-3 mt-1">
+                    <StatCard
+                      title="Total Attempts"
+                      value={stats?.quizzes_done ?? 0}
+                      sub="All time"
+                      variant="blue"
+                    />
+                    <StatCard
+                      title="Highest Score"
+                      value={highestScore == null ? "—" : `${highestScore}%`}
+                      sub="Best attempt"
+                      variant="green"
+                    />
+                    <StatCard
+                      title="Lowest Score"
+                      value={lowestScore == null ? "—" : `${lowestScore}%`}
+                      sub="Lowest attempt"
+                      variant="orange"
+                    />
+                    <StatCard
+                      title="Weekly Streak"
+                      value={`${stats?.streak_days ?? 0} days`}
+                      sub="Consecutive days"
+                      variant="purple"
+                    />
+                  </div>
+
+                  <div className="mt-2">
+                    <div className="d-flex align-items-center justify-content-between">
+                      <div className="dash-muted">
+                        Average Score Progress
+                      </div>
+                      <div style={{ fontWeight: 800 }}>
+                        {Math.round(stats?.avg_score ?? 0)}%
+                      </div>
+                    </div>
+
+                    <div className="progress" style={{ height: 10, borderRadius: 999 }}>
+                      <div
+                        className="progress-bar"
+                        role="progressbar"
+                        style={{ width: `${Math.min(100, Math.max(0, Math.round(stats?.avg_score ?? 0)))}%` }}
+                        aria-valuenow={Math.round(stats?.avg_score ?? 0)}
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                      />
+                    </div>
+
+                    <div className="dash-muted mt-2" style={{ fontSize: 12 }}>
+                      Based on your quiz attempts and scores.
+                    </div>
+                  </div>
+
+                  <div className="mt-3">
+                    {weeklyChart.labels.length ? (
+                      <>
+                        <div className="dash-muted mb-2">
+                          Weekly Activity (last {weeklyChart.labels.length} weeks)
+                        </div>
+                        <BarChart labels={weeklyChart.labels} values={weeklyChart.values} />
+                      </>
+                    ) : (
+                      <div className="dash-muted">
+                        Weekly chart will appear after you take more quizzes.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div className="row g-3 mt-1">
             <div className="col-12 col-lg-6">

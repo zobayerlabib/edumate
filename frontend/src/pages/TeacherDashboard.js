@@ -86,6 +86,9 @@ export default function TeacherDashboard() {
   const [lessons, setLessons] = useState([]);
   const [selectedLessonId, setSelectedLessonId] = useState(null);
 
+  //Toggle lesson text preview
+  const [showLessonPreview, setShowLessonPreview] = useState(false);
+
   const [newTitle, setNewTitle] = useState("");
   const [newSubject, setNewSubject] = useState("");
   const [creating, setCreating] = useState(false);
@@ -99,6 +102,24 @@ export default function TeacherDashboard() {
   const [genNum, setGenNum] = useState(5);
   const [genLoading, setGenLoading] = useState(false);
   const [genResult, setGenResult] = useState(null);
+
+  // ===============================
+  // Quiz mode (AI vs Manual)
+  // ===============================
+  const [quizMode, setQuizMode] = useState("ai"); // "ai" | "manual"
+
+  // Manual quiz (no limit)
+  const [manualDifficulty, setManualDifficulty] = useState("easy");
+  const [manualSaving, setManualSaving] = useState(false);
+
+  const emptyManualQuestion = () => ({
+    question: "",
+    options: ["", "", "", ""],
+    answerIndex: 0,
+    explanation: "",
+  });
+
+  const [manualQuestions, setManualQuestions] = useState([emptyManualQuestion()]);
 
   const [quizLoading, setQuizLoading] = useState(false);
   const [quizzes, setQuizzes] = useState([]);
@@ -132,6 +153,15 @@ export default function TeacherDashboard() {
       localStorage.setItem("edumate_theme", "light");
     }
   }, [darkMode]);
+
+  // Adding bottom padding to body ensures the Quiz Preview stays visible.
+  useEffect(() => {
+    const prev = document.body.style.paddingBottom;
+    document.body.style.paddingBottom = "180px";
+    return () => {
+      document.body.style.paddingBottom = prev;
+    };
+  }, []);
 
   const fetchMeWithPlan = async () => {
     const meRes = await api.get("/auth/me");
@@ -532,6 +562,112 @@ const loadStudentWeakTopics = async (courseId, email) => {
     }
   };
 
+
+  //Manual quiz helpers (unlimit)
+  const addManualQuestion = () => {
+    setManualQuestions((prev) => [...prev, emptyManualQuestion()]);
+  };
+
+  const removeManualQuestion = (idx) => {
+    setManualQuestions((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const updateManualQuestionText = (idx, value) => {
+    setManualQuestions((prev) =>
+      prev.map((q, i) => (i === idx ? { ...q, question: value } : q))
+    );
+  };
+
+  const updateManualOption = (qIdx, optIdx, value) => {
+    setManualQuestions((prev) =>
+      prev.map((q, i) => {
+        if (i !== qIdx) return q;
+        const options = [...q.options];
+        options[optIdx] = value;
+        return { ...q, options };
+      })
+    );
+  };
+
+  const updateManualAnswerIndex = (idx, answerIndex) => {
+    setManualQuestions((prev) =>
+      prev.map((q, i) => (i === idx ? { ...q, answerIndex } : q))
+    );
+  };
+
+  const updateManualExplanation = (idx, value) => {
+    setManualQuestions((prev) =>
+      prev.map((q, i) => (i === idx ? { ...q, explanation: value } : q))
+    );
+  };
+
+  //Create manual quiz (unlimited questions)
+  const createManualQuiz = async () => {
+    if (!selectedLessonId) {
+      setError("Select a lesson first.");
+      return;
+    }
+
+    // Basic validation
+    for (let i = 0; i < manualQuestions.length; i++) {
+      const q = manualQuestions[i];
+      if (!q.question.trim()) {
+        setError(`Manual Quiz: Question ${i + 1} is empty.`);
+        return;
+      }
+      if ((q.options || []).length !== 4 || q.options.some((o) => !String(o).trim())) {
+        setError(`Manual Quiz: Question ${i + 1} must have 4 non-empty options.`);
+        return;
+      }
+    }
+
+    setManualSaving(true);
+    setError("");
+    setGenResult(null);
+    setViewQuiz(null);
+
+    try {
+      const payloadQuestions = manualQuestions.map((q) => ({
+        question: q.question.trim(),
+        options: q.options.map((o) => String(o).trim()),
+        answer: String(q.options[q.answerIndex] || "").trim(),
+        explanation: String(q.explanation || "").trim(),
+      }));
+
+      const res = await api.post(`/quizzes/manual/${selectedLessonId}`, {
+        difficulty: manualDifficulty,
+        questions: payloadQuestions,
+      });
+
+      // reuse preview area
+      setGenResult(res.data);
+      await refreshQuizzes(selectedLessonId);
+      setActiveTab("quizzes");
+
+      // reset form
+      setManualQuestions([emptyManualQuestion()]);
+    } catch (e) {
+      setError(e?.response?.data?.detail || "Failed to create manual quiz.");
+    } finally {
+      setManualSaving(false);
+    }
+  };
+
+  //Delete quiz anytime (teacher)
+  const deleteQuiz = async (quizId) => {
+    if (!quizId) return;
+    if (!window.confirm("Delete this quiz? This cannot be undone.")) return;
+
+    setError("");
+    try {
+      await api.delete(`/quizzes/${quizId}`);
+      if (viewQuiz?.quiz_id === quizId) setViewQuiz(null);
+      await refreshQuizzes(selectedLessonId);
+    } catch (e) {
+      setError(e?.response?.data?.detail || "Failed to delete quiz.");
+    }
+  };
+
   const sendMessage = async () => {
     const msg = chatInput.trim();
     if (!msg || chatLoading) return;
@@ -587,7 +723,7 @@ const loadStudentWeakTopics = async (courseId, email) => {
 
   if (loading) {
     return (
-      <div className="container py-4">
+      <div className="container py-4" style={{ paddingBottom: 120 }}>
         <div className="card dash-card p-3">Loading Teacher Dashboard...</div>
       </div>
     );
@@ -598,7 +734,7 @@ const loadStudentWeakTopics = async (courseId, email) => {
   const priceYear = "RM 99.00 / year";
 
   return (
-    <div className="container py-4">
+    <div className="container py-4" style={{ paddingBottom: 220 }}>
       {toast ? (
         <div
           style={{
@@ -1317,7 +1453,7 @@ const loadStudentWeakTopics = async (courseId, email) => {
         </div>
       )}
 
-      {activeTab === "quizzes" && (
+            {activeTab === "quizzes" && (
         <div className="mt-3">
           <div className="card dash-card dash-section dash-section--softblue">
             <div className="card-body">
@@ -1347,12 +1483,34 @@ const loadStudentWeakTopics = async (courseId, email) => {
                   <div className="dash-muted">No lessons yet. Add a lesson first.</div>
                 ) : (
                   <div className="row g-3">
+                    {/* =========================
+                        LEFT: QUIZ BUILDER
+                    ========================= */}
                     <div className="col-12 col-lg-5">
                       <div className="card dash-card h-100">
                         <div className="card-body">
-                          <h6 className="mb-3">Generate Quiz</h6>
+                          <h6 className="mb-3">Quiz Builder</h6>
 
-                          <div className="mb-2">
+                          {/*Mode selector */}
+                          <div className="btn-group w-100" role="group" aria-label="Quiz mode">
+                            <button
+                              type="button"
+                              className={`btn ${quizMode === "ai" ? "btn-primary" : "btn-outline-primary"}`}
+                              onClick={() => setQuizMode("ai")}
+                            >
+                              Generate with AI
+                            </button>
+                            <button
+                              type="button"
+                              className={`btn ${quizMode === "manual" ? "btn-primary" : "btn-outline-primary"}`}
+                              onClick={() => setQuizMode("manual")}
+                            >
+                              Create Manually
+                            </button>
+                          </div>
+
+                          {/* Lesson select */}
+                          <div className="mb-2 mt-3">
                             <label className="form-label">Lesson</label>
                             <select
                               className="form-select"
@@ -1367,140 +1525,324 @@ const loadStudentWeakTopics = async (courseId, email) => {
                             </select>
                           </div>
 
-                          <div className="row g-2">
-                            <div className="col-6">
-                              <label className="form-label">Difficulty</label>
-                              <select
-                                className="form-select"
-                                value={genDifficulty}
-                                onChange={(e) => setGenDifficulty(e.target.value)}
-                              >
-                                <option value="easy">easy</option>
-                                <option value="medium">medium</option>
-                                <option value="hard">hard</option>
-                              </select>
-                            </div>
-
-                            <div className="col-6">
-                              <label className="form-label">Questions</label>
-                              <input
-                                className="form-control"
-                                type="number"
-                                min={1}
-                                max={maxQuestions}
-                                value={genNum}
-                                onChange={(e) => setGenNum(e.target.value)}
-                              />
-                              {!isPremium ? (
-                                <div className="dash-muted" style={{ fontSize: 12, marginTop: 4 }}>
-                                  Free plan up to 10 questions. Premium up to 20.
-                                </div>
-                              ) : null}
-                            </div>
-                          </div>
-
+                          {/* Lesson preview toggle */}
                           <button
-                            className="btn btn-primary mt-3"
                             type="button"
-                            onClick={generateQuiz}
-                            disabled={genLoading}
+                            className="btn btn-sm btn-outline-secondary w-100 mb-2"
+                            onClick={() => setShowLessonPreview((s) => !s)}
                           >
-                            {genLoading ? "Generating..." : "Generate Quiz"}
+                            {showLessonPreview ? "Hide Lesson Text" : "View Lesson Text"}
                           </button>
 
-                          <div className="dash-muted mt-2" style={{ fontSize: 12 }}>
-                            Premium can generate bigger quizzes and better quality.
-                          </div>
-                        </div>
-                      </div>
+                          {/* Lesson preview under the button */}
+                          {showLessonPreview && selectedLesson ? (
+                            <div
+                              className="p-3 mb-3"
+                              style={{
+                                border: "1px solid rgba(0,0,0,0.08)",
+                                borderRadius: 12,
+                                background: "rgba(255,255,255,0.6)",
+                              }}
+                            >
+                              <div className="d-flex justify-content-between align-items-start gap-2">
+                                <div>
+                                  <div className="fw-bold">{selectedLesson.title}</div>
+                                  <div className="dash-muted">Topic: {selectedLesson.topic}</div>
+                                </div>
+                                <button
+                                  className="btn btn-sm btn-outline-secondary"
+                                  type="button"
+                                  onClick={() => setShowLessonPreview(false)}
+                                >
+                                  Close
+                                </button>
+                              </div>
 
-                      <div className="card dash-card mt-3">
-                        <div className="card-body">
-                          <h6 className="mb-3">Generated Preview</h6>
-                          {!genResult?.questions?.length ? (
-                            <div className="dash-muted">
-                              Generate a quiz to preview here.
+                              {selectedLesson.attachment_url ? (
+                                <div className="mt-2">
+                                  <a
+                                    className="btn btn-sm btn-outline-primary"
+                                    href={fileLink(selectedLesson.attachment_url)}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    Open Attachment
+                                  </a>
+                                </div>
+                              ) : null}
+
+                              <div className="mt-3">
+                                <div className="dash-muted mb-1">Lesson Text</div>
+                                <div
+                                  className="p-3"
+                                  style={{
+                                    border: "1px solid rgba(0,0,0,0.08)",
+                                    borderRadius: 12,
+                                    maxHeight: 220,
+                                    overflow: "auto",
+                                    background: "rgba(255,255,255,0.6)",
+                                  }}
+                                >
+                                  <ReactMarkdown remarkPlugins={[remarkGfm]} skipHtml={true}>
+                                    {selectedLesson.content_text || "No text content for this lesson."}
+                                  </ReactMarkdown>
+                                </div>
+                              </div>
                             </div>
-                          ) : (
-                            <div className="list-group">
-                              {genResult.questions.map((q, idx) => (
-                                <div key={idx} className="list-group-item">
-                                  <div className="fw-bold">
-                                    {idx + 1}. {q.question}
-                                  </div>
-                                  <div className="mt-2">
-                                    {(q.options || []).map((op, i) => (
-                                      <div key={i}>
-                                        {String.fromCharCode(65 + i)}. {op}
+                          ) : null}
+
+                          {quizMode === "ai" ? (
+                            <>
+                              <div className="row g-2">
+                                <div className="col-6">
+                                  <label className="form-label">Difficulty</label>
+                                  <select
+                                    className="form-select"
+                                    value={genDifficulty}
+                                    onChange={(e) => setGenDifficulty(e.target.value)}
+                                  >
+                                    <option value="easy">easy</option>
+                                    <option value="medium">medium</option>
+                                    <option value="hard">hard</option>
+                                  </select>
+                                </div>
+
+                                <div className="col-6">
+                                  <label className="form-label">Questions</label>
+                                  <input
+                                    className="form-control"
+                                    type="number"
+                                    min={1}
+                                    max={maxQuestions}
+                                    value={genNum}
+                                    onChange={(e) => setGenNum(e.target.value)}
+                                  />
+                                  {!isPremium ? (
+                                    <div className="dash-muted" style={{ fontSize: 12, marginTop: 4 }}>
+                                      Free plan up to 10 questions. Premium up to 20.
+                                    </div>
+                                  ) : null}
+                                </div>
+                              </div>
+
+                              <button
+                                className="btn btn-primary mt-3"
+                                type="button"
+                                onClick={generateQuiz}
+                                disabled={genLoading}
+                              >
+                                {genLoading ? "Generating..." : "Generate Quiz"}
+                              </button>
+
+                              <div className="dash-muted mt-2" style={{ fontSize: 12 }}>
+                                AI reads your lesson and generates MCQ questions (4 options).
+                              </div>
+
+                              {/* Generated preview directly under Generate Quiz */}
+                              <div className="mt-3">
+                                <h6 className="mb-2">Generated Preview</h6>
+                                {!genResult?.questions?.length ? (
+                                  <div className="dash-muted">Generate a quiz to preview here.</div>
+                                ) : (
+                                  <div
+                                    className="list-group"
+                                    style={{
+                                      maxHeight: 260,
+                                      overflow: "auto",
+                                      border: "1px solid rgba(0,0,0,0.08)",
+                                      borderRadius: 12,
+                                    }}
+                                  >
+                                    {genResult.questions.map((q, idx) => (
+                                      <div key={idx} className="list-group-item">
+                                        <div className="fw-bold">
+                                          {idx + 1}. {q.question}
+                                        </div>
+                                        <div className="mt-2">
+                                          {(q.options || []).map((op, i) => (
+                                            <div key={i}>
+                                              {String.fromCharCode(65 + i)}. {op}
+                                            </div>
+                                          ))}
+                                        </div>
+                                        <div className="dash-muted mt-2">Answer: {q.answer}</div>
                                       </div>
                                     ))}
                                   </div>
-                                  <div className="dash-muted mt-2">
-                                    Answer: {q.answer}
-                                  </div>
+                                )}
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="mt-3">
+                                <label className="form-label">Difficulty</label>
+                                <select
+                                  className="form-select"
+                                  value={manualDifficulty}
+                                  onChange={(e) => setManualDifficulty(e.target.value)}
+                                >
+                                  <option value="easy">easy</option>
+                                  <option value="medium">medium</option>
+                                  <option value="hard">hard</option>
+                                </select>
+                              </div>
+
+                              <div className="mt-3">
+                                <div className="fw-semibold">Questions</div>
+
+                                {/* Manual questions list is scrollable, so it won't push content under footer */}
+                                <div
+                                  className="mt-2"
+                                  style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 12,
+                                    maxHeight: 320,
+                                    overflow: "auto",
+                                    paddingRight: 6,
+                                  }}
+                                >
+                                  {manualQuestions.map((q, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="p-3"
+                                      style={{
+                                        border: "1px solid rgba(0,0,0,0.08)",
+                                        borderRadius: 12,
+                                        background: "rgba(255,255,255,0.6)",
+                                      }}
+                                    >
+                                      <div className="d-flex justify-content-between align-items-center">
+                                        <div className="fw-bold">Question {idx + 1}</div>
+                                        {manualQuestions.length > 1 ? (
+                                          <button
+                                            type="button"
+                                            className="btn btn-sm btn-outline-danger"
+                                            onClick={() => removeManualQuestion(idx)}
+                                          >
+                                            Remove
+                                          </button>
+                                        ) : null}
+                                      </div>
+
+                                      <div className="mt-2">
+                                        <label className="form-label">Question</label>
+                                        <input
+                                          className="form-control"
+                                          value={q.question}
+                                          onChange={(e) => updateManualQuestionText(idx, e.target.value)}
+                                          placeholder="Type your question..."
+                                        />
+                                      </div>
+
+                                      <div className="row g-2 mt-1">
+                                        {[0, 1, 2, 3].map((opIdx) => (
+                                          <div className="col-12 col-md-6" key={opIdx}>
+                                            <label className="form-label">
+                                              Option {String.fromCharCode(65 + opIdx)}
+                                            </label>
+                                            <input
+                                              className="form-control"
+                                              value={q.options[opIdx]}
+                                              onChange={(e) => updateManualOption(idx, opIdx, e.target.value)}
+                                              placeholder={`Option ${String.fromCharCode(65 + opIdx)}`}
+                                            />
+                                          </div>
+                                        ))}
+                                      </div>
+
+                                      <div className="mt-2">
+                                        <label className="form-label">Correct Answer</label>
+                                        <select
+                                          className="form-select"
+                                          value={q.answerIndex}
+                                          onChange={(e) => updateManualAnswerIndex(idx, Number(e.target.value))}
+                                        >
+                                          <option value={0}>A</option>
+                                          <option value={1}>B</option>
+                                          <option value={2}>C</option>
+                                          <option value={3}>D</option>
+                                        </select>
+                                      </div>
+
+                                      <div className="mt-2">
+                                        <label className="form-label">Explanation (optional)</label>
+                                        <input
+                                          className="form-control"
+                                          value={q.explanation}
+                                          onChange={(e) => updateManualExplanation(idx, e.target.value)}
+                                          placeholder="Explain why the answer is correct..."
+                                        />
+                                      </div>
+                                    </div>
+                                  ))}
                                 </div>
-                              ))}
-                            </div>
+
+                                {/* Buttons at bottom */}
+                                <div className="d-flex gap-2 mt-3">
+                                  <button
+                                    type="button"
+                                    className="btn btn-outline-primary"
+                                    onClick={addManualQuestion}
+                                  >
+                                    + Add Question
+                                  </button>
+
+                                  <button
+                                    className="btn btn-primary"
+                                    type="button"
+                                    onClick={createManualQuiz}
+                                    disabled={manualSaving}
+                                  >
+                                    {manualSaving ? "Saving..." : "Create Manual Quiz"}
+                                  </button>
+                                </div>
+
+                                <div className="dash-muted mt-2" style={{ fontSize: 12 }}>
+                                  Manual mode has no question limit.
+                                </div>
+
+                                {/* Optional: show preview after manual creation */}
+                                {genResult?.questions?.length ? (
+                                  <div className="mt-3">
+                                    <h6 className="mb-2">Generated Preview</h6>
+                                    <div
+                                      className="list-group"
+                                      style={{
+                                        maxHeight: 220,
+                                        overflow: "auto",
+                                        border: "1px solid rgba(0,0,0,0.08)",
+                                        borderRadius: 12,
+                                      }}
+                                    >
+                                      {genResult.questions.map((q, idx) => (
+                                        <div key={idx} className="list-group-item">
+                                          <div className="fw-bold">
+                                            {idx + 1}. {q.question}
+                                          </div>
+                                          <div className="mt-2">
+                                            {(q.options || []).map((op, i) => (
+                                              <div key={i}>
+                                                {String.fromCharCode(65 + i)}. {op}
+                                              </div>
+                                            ))}
+                                          </div>
+                                          <div className="dash-muted mt-2">Answer: {q.answer}</div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ) : null}
+                              </div>
+                            </>
                           )}
-
-                      {selectedLesson ? (
-                        <div className="card dash-card mt-3">
-                          <div className="card-body">
-                            <div className="d-flex align-items-start justify-content-between gap-2">
-                              <div>
-                                <div className="fw-bold">{selectedLesson.title}</div>
-                                <div className="dash-muted">Topic: {selectedLesson.topic}</div>
-                              </div>
-                              <button
-                                className="btn btn-sm btn-outline-secondary"
-                                type="button"
-                                onClick={() => setSelectedLessonId(null)}
-                              >
-                                Close
-                              </button>
-                            </div>
-
-                            {selectedLesson.attachment_url ? (
-                              <div className="mt-2">
-                                <a
-                                  className="btn btn-sm btn-outline-primary"
-                                  href={fileLink(selectedLesson.attachment_url)}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                >
-                                  Open Attachment
-                                </a>
-                              </div>
-                            ) : null}
-
-                            <div className="mt-3">
-                              <div className="dash-muted mb-1">Lesson Text</div>
-                              <div
-                                className="p-3"
-                                style={{
-                                  border: "1px solid rgba(0,0,0,0.08)",
-                                  borderRadius: 12,
-                                  maxHeight: 260,
-                                  overflow: "auto",
-                                  background: "rgba(255,255,255,0.6)",
-                                }}
-                              >
-                                <ReactMarkdown
-                                  remarkPlugins={[remarkGfm]}
-                                  skipHtml={true}
-                                >
-                                  {selectedLesson.content_text ||
-                                    "No text content for this lesson."}
-                                </ReactMarkdown>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ) : null}
                         </div>
                       </div>
                     </div>
 
+                    {/* =========================
+                        RIGHT: QUIZ LIST + VIEW
+                    ========================= */}
                     <div className="col-12 col-lg-7">
                       <div className="card dash-card h-100">
                         <div className="card-body">
@@ -1523,54 +1865,88 @@ const loadStudentWeakTopics = async (courseId, email) => {
                           ) : (
                             <div className="list-group mb-3">
                               {quizzes.map((q) => (
-                                <button
+                                <div
                                   key={q.quiz_id}
-                                  className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                                  onClick={() => loadQuiz(String(q.quiz_id))}
-                                  type="button"
+                                  className="list-group-item d-flex justify-content-between align-items-center"
+                                  style={{ gap: 10 }}
                                 >
-                                  <span>
-                                    Quiz #{q.quiz_id} • {q.difficulty}
-                                  </span>
-                                  <span className="dash-muted">{q.created_at}</span>
-                                </button>
+                                  <button
+                                    className="btn btn-link p-0 text-decoration-none"
+                                    style={{ textAlign: "left" }}
+                                    onClick={() => loadQuiz(String(q.quiz_id))}
+                                    type="button"
+                                  >
+                                    <span className="fw-semibold">
+                                      Quiz #{q.quiz_id} • {q.difficulty}
+                                    </span>
+                                    <div className="dash-muted" style={{ fontSize: 12 }}>
+                                      {q.question_count != null ? `${q.question_count} questions • ` : ""}
+                                      {q.created_at}
+                                    </div>
+                                  </button>
+
+                                  <button
+                                    className="btn btn-sm btn-outline-danger"
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteQuiz(q.quiz_id);
+                                    }}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
                               ))}
                             </div>
                           )}
 
+                          {/* View quiz details */}
                           {viewQuizLoading ? (
                             <div className="dash-muted">Loading quiz...</div>
-                          ) : viewQuiz?.questions?.length ? (
-                            <div>
-                              <div className="dash-muted mb-2">
-                                Viewing Quiz: <b>{viewQuiz.quiz_id}</b>
-                              </div>
-
-                              <div className="list-group">
-                                {viewQuiz.questions.map((q, idx) => (
-                                  <div key={idx} className="list-group-item">
+                          ) : viewQuiz ? (
+                            <div className="card dash-card mt-2">
+                              <div className="card-body">
+                                <div className="d-flex justify-content-between align-items-start gap-2">
+                                  <div>
                                     <div className="fw-bold">
-                                      {idx + 1}. {q.question}
+                                      Quiz #{viewQuiz.quiz_id} • {viewQuiz.difficulty}
                                     </div>
-                                    <div className="mt-2">
-                                      {(q.options || []).map((op, i) => (
-                                        <div key={i}>
-                                          {String.fromCharCode(65 + i)}. {op}
-                                        </div>
-                                      ))}
-                                    </div>
-                                    <div className="dash-muted mt-2">
-                                      Answer: {q.answer}
+                                    <div className="dash-muted" style={{ fontSize: 12 }}>
+                                      {viewQuiz.questions?.length || 0} questions
                                     </div>
                                   </div>
-                                ))}
+                                  <button
+                                    className="btn btn-sm btn-outline-secondary"
+                                    type="button"
+                                    onClick={() => setViewQuiz(null)}
+                                  >
+                                    Close
+                                  </button>
+                                </div>
+
+                                <div className="mt-3" style={{ maxHeight: 430, overflow: "auto" }}>
+                                  {(viewQuiz.questions || []).map((q, idx) => (
+                                    <div key={idx} className="mb-3">
+                                      <div className="fw-bold">
+                                        {idx + 1}. {q.question}
+                                      </div>
+                                      <div className="mt-2">
+                                        {(q.options || []).map((op, i) => (
+                                          <div key={i}>
+                                            {String.fromCharCode(65 + i)}. {op}
+                                          </div>
+                                        ))}
+                                      </div>
+                                      <div className="dash-muted mt-2">Answer: {q.answer}</div>
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             </div>
                           ) : null}
                         </div>
                       </div>
                     </div>
-
                   </div>
                 )}
               </div>
@@ -1578,6 +1954,7 @@ const loadStudentWeakTopics = async (courseId, email) => {
           </div>
         </div>
       )}
+
 {activeTab === "progress" && (
   <div className="mt-3">
     <div className="card dash-card dash-section dash-section--softblue">

@@ -121,7 +121,7 @@ export default function StudentDashboard() {
   const [stats, setStats] = useState(null);
 
   // ===============================
-  // ✅ NEW: Activity / Weekly chart
+  //  Activity / Weekly chart
   // ===============================
   const [weeklyActivity, setWeeklyActivity] = useState([]); // [{ label/week, attempts, avg_score }]
   const [weeklyMetric, setWeeklyMetric] = useState("attempts"); // "attempts" | "avg_score"
@@ -359,7 +359,7 @@ export default function StudentDashboard() {
           setStats(null);
         }
 
-        // ✅ Weekly activity (optional endpoint)
+        // Weekly activity (optional endpoint)
         // If your backend does not have this endpoint, it will fail silently and chart will stay hidden.
         try {
           const wRes = await api.get("/attempts/my/weekly-progress?weeks=8");

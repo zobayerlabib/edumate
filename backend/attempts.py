@@ -111,7 +111,7 @@ def submit_attempt(
 
 
 # =========================================================
-# ✅ NEW: Student stats for dashboard
+# Student stats for dashboard
 # =========================================================
 @router.get("/my/stats")
 def my_stats(
@@ -172,7 +172,7 @@ def my_stats(
 
 
 # =========================================================
-# ✅ NEW: Weekly progress for student dashboard chart
+#  Weekly progress for student dashboard chart
 # =========================================================
 @router.get("/my/weekly-progress")
 def my_weekly_progress(

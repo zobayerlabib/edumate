@@ -35,7 +35,7 @@ def create_course(
     return c
 
 
-# ✅ OPTION A: students cannot self-enroll
+# OPTION A: students cannot self-enroll
 @router.post("/{course_id}/enroll")
 def enroll_student(
     course_id: int,
@@ -48,7 +48,7 @@ def enroll_student(
     )
 
 
-# ✅ Teacher enrolls student by email
+# Teacher enrolls student by email
 @router.post("/{course_id}/enroll-student")
 def teacher_enroll_student(
     course_id: int,
@@ -80,7 +80,7 @@ def teacher_enroll_student(
     return {"message": "Student enrolled", "student_email": student_email}
 
 
-# ✅ Teacher lists students in the course
+#  Teacher lists students in the course
 @router.get("/{course_id}/students")
 def list_course_students(
     course_id: int,
@@ -102,7 +102,7 @@ def list_course_students(
     }
 
 
-# ✅ Teacher removes a student from the course
+# Teacher removes a student from the course
 @router.delete("/{course_id}/students/{student_email}")
 def remove_student_from_course(
     course_id: int,

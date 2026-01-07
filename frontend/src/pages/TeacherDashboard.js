@@ -1690,7 +1690,7 @@ const loadStudentWeakTopics = async (courseId, email) => {
                               <div className="mt-3">
                                 <div className="fw-semibold">Questions</div>
 
-                                {/* Manual questions list is scrollable, so it won't push content under footer */}
+                                {/* Manual questions list is scrollable */}
                                 <div
                                   className="mt-2"
                                   style={{

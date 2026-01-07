@@ -124,7 +124,7 @@ def login(data: LoginReq, db: Session = Depends(get_db)):
 
     token = create_access_token(user.email, user.role)
 
-    # Returning plan helps frontend show Free/Premium immediately after login
+    # Returning plan helps frontend show Freeo rPremium immediately after login
     return {
         "access_token": token,
         "token_type": "bearer",

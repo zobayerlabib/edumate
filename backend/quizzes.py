@@ -18,7 +18,7 @@ from models import Course, Lesson, Quiz, Enrollment, User
 router = APIRouter(prefix="/quizzes", tags=["quizzes"])
 
 # =========================================================
-# Gemini setup (same env pattern as gemini_chat.py)
+# Gemini setup 
 # =========================================================
 env_path = Path(__file__).resolve().parent / ".env"
 load_dotenv(env_path, override=True)
@@ -312,7 +312,7 @@ def generate_quiz_from_lesson(
 
 
 # =========================================================
-# Manual Create Quiz (Unlimited questions)
+# Manual Create Quiz 
 # =========================================================
 @router.post("/manual/{lesson_id}")
 def create_manual_quiz(
